@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MK TECHNOLOGIES</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Segoe UI,Arial,sans-serif;background:#f4f6f9;color:#333}
+
+/* ===== LOGIN ===== */
+#login{
+ display:flex; justify-content:center; align-items:center;
+ height:100vh;
+ background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);
+}
+.login-box{
+ width:380px; padding:50px 30px;
+ background:rgba(255,255,255,0.1);
+ backdrop-filter:blur(12px);
+ border-radius:15px;
+ box-shadow:0 20px 40px rgba(0,0,0,0.4);
+ text-align:center;
+ animation:slideIn 1s ease;
+}
+.login-box h2{color:white;margin-bottom:30px}
+.login-box input, .login-box button{
+ width:100%; padding:14px; margin:12px 0;
+ border-radius:8px; border:none; font-size:16px;
+}
+.login-box button{
+ background:#0d6efd;color:white;font-weight:bold;
+ cursor:pointer; transition:0.3s;
+}
+.login-box button:hover{background:#084298}
+#msg{color:white;margin-top:10px}
+
+@keyframes slideIn{from{opacity:0;transform:translateY(50px)}to{opacity:1;transform:translateY(0)}}
+
+/* ===== WEBSITE ===== */
+#site{display:none; animation:fadeIn 0.5s ease forwards;}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+#site header{
+ background:linear-gradient(135deg,#0b132b,#3a86ff);
+ color:white; padding:100px 20px; text-align:center;
+ border-bottom-left-radius:30px; border-bottom-right-radius:30px;
+}
+#site header h1{font-size:42px;margin-bottom:10px}
+#site header p{font-size:18px;margin-bottom:20px}
+#site header button{
+ padding:12px 25px; font-size:16px; border:none; border-radius:8px;
+ cursor:pointer; background:#fff;color:#0b132b;font-weight:bold; transition:0.3s;
+}
+#site header button:hover{background:#f4f6f9}
+
+/* ===== DASHBOARD ===== */
+#dashboard{display:none; flex-wrap:wrap; height:100vh;}
+.sidebar{
+ width:220px; background:#0b132b; color:white;
+ height:100vh; padding:20px; flex-shrink:0; transition:0.3s;
+}
+.sidebar h3{margin-bottom:20px}
+.sidebar a{
+ display:block; color:white; text-decoration:none;
+ padding:12px; margin:8px 0; border-radius:8px; transition:0.3s;
+}
+.sidebar a:hover{background:#3a86ff}
+
+.main{
+ flex:1; padding:30px; display:flex;
+ flex-wrap:wrap; gap:20px; overflow-y:auto;
+}
+.card{
+ background:white; flex:1 1 250px; min-height:120px;
+ border-radius:15px; padding:20px;
+ box-shadow:0 10px 20px rgba(0,0,0,0.1); transition:0.3s;
+}
+.card:hover{transform:translateY(-5px);box-shadow:0 15px 25px rgba(0,0,0,0.15)}
+.card h3{margin-bottom:12px}
+.card p{font-size:14px;color:#555}
+
+/* ===== CHARTS ===== */
+canvas{background:#f9f9f9; border-radius:12px; padding:10px;}
+.tooltip{
+ position:absolute; background:#0b132b;color:white;padding:6px 10px;
+ border-radius:6px;font-size:12px; pointer-events:none; display:none;
+}
+
+/* ===== RESPONSIVE ===== */
+@media(max-width:768px){
+ #dashboard{flex-direction:column}
+ .sidebar{width:100%;height:auto}
+ .main{padding:20px}
+}
+</style>
+</head>
+<body>
+
+<!-- LOGIN PAGE -->
+<div id="login">
+ <div class="login-box">
+  <h2>MK TECHNOLOGIES</h2>
+  <input id="user" placeholder="Username">
+  <input id="pass" type="password" placeholder="Password">
+  <button onclick="login()">Login</button>
+  <p id="msg"></p>
+ </div>
+</div>
+
+<!-- WEBSITE PAGE -->
+<div id="site">
+ <header>
+  <h1>Welcome to MK TECHNOLOGIES</h1>
+  <p>Innovative • Secure • Digital Solutions</p>
+  <button onclick="openDashboard()">Go to Dashboard</button>
+ </header>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dashboard">
+ <div class="sidebar">
+  <h3>MK TECH</h3>
+  <a href="#">Dashboard</a>
+  <a href="#">Users</a>
+  <a href="#">Analytics</a>
+  <a href="#">Settings</a>
+ </div>
+ <div class="main">
+  <div class="card"><h3>Total Users</h3><p id="totalUsers">0 Users</p></div>
+  <div class="card"><h3>Revenue</h3><p id="revenue">KES 0</p></div>
+  <div class="card"><h3>Projects</h3><p id="projects">0 Projects</p></div>
+  <div class="card"><h3>Monthly Bar Chart</h3><canvas id="barChart" width="400" height="200"></canvas></div>
+  <div class="card"><h3>Revenue Trend</h3><canvas id="lineChart" width="400" height="200"></canvas></div>
+  <div class="card"><h3>Project Distribution</h3><canvas id="pieChart" width="400" height="200"></canvas></div>
+ </div>
+</div>
+
+<div class="tooltip" id="tooltip"></div>
+
+<script>
+// LOGIN
+const USERNAME="mkjose", PASSWORD="mungajose456";
+function login(){
+ const u=document.getElementById("user").value;
+ const p=document.getElementById("pass").value;
+ if(u===USERNAME && p===PASSWORD){
+   document.getElementById("login").style.display="none";
+   document.getElementById("site").style.display="block";
+ } else {document.getElementById("msg").innerText="Invalid username or password";}
+}
+function openDashboard(){
+ document.getElementById("site").style.display="none";
+ document.getElementById("dashboard").style.display="flex";
+ initDashboard();
+}
+
+// ===== DASHBOARD DATA & CHARTS =====
+function initDashboard(){
+ // Animated counters
+ animateValue("totalUsers",0,120,1000," Users");
+ animateValue("revenue",0,54000,1200," KES");
+ animateValue("projects",0,8,1000," Projects");
+
+ // BAR CHART
+ const barCanvas=document.getElementById("barChart");
+ const bCtx=barCanvas.getContext("2d");
+ const barData=[5,12,9,15,20,18,25,22,28,30,35,40];
+ const labels=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+ const maxVal=Math.max(...barData)*1.2;
+ const barWidth=25, spacing=15;
+ const tooltip=document.getElementById("tooltip");
+
+ function drawBarChart(){
+   bCtx.clearRect(0,0,barCanvas.width,barCanvas.height);
+   barData.forEach((val,i)=>{
+     const x=i*(barWidth+spacing)+20;
+     const h=(val/maxVal)*barCanvas.height;
+     bCtx.fillStyle=val<10?"#0d6efd":val<20?"#3a86ff":"#ff4d4d";
+     bCtx.fillRect(x,barCanvas.height-h,barWidth,h);
+     bCtx.fillStyle="#333"; bCtx.font="12px Arial";
+     bCtx.fillText(labels[i],x,barCanvas.height-2);
+   });
+ }
+ drawBarChart();
+
+ barCanvas.addEventListener("mousemove",(e)=>{
+   const rect=barCanvas.getBoundingClientRect();
+   const x=e.clientX-rect.left, y=e.clientY-rect.top;
+   tooltip.style.display="none";
+   barData.forEach((val,i)=>{
+     const bx=i*(barWidth+spacing)+20;
+     const by=barCanvas.height-(val/maxVal)*barCanvas.height;
+     if(x>bx && x<bx+barWidth && y>by && y<barCanvas.height){
+       tooltip.style.display="block";
+       tooltip.style.left=e.pageX+10+"px";
+       tooltip.style.top=e.pageY-30+"px";
+       tooltip.innerText=labels[i]+": "+val;
+     }
+   });
+ });
+ barCanvas.addEventListener("mouseleave",()=>{tooltip.style.display="none";});
+
+ // LINE CHART
+ const lineCanvas=document.getElementById("lineChart");
+ const lCtx=lineCanvas.getContext("2d");
+ const lineData=[10,15,12,20,18,22,25,28,30,35,38,40];
+ function drawLineChart(){
+   lCtx.clearRect(0,0,lineCanvas.width,lineCanvas.height);
+   lCtx.beginPath();
+   lCtx.moveTo(20,lineCanvas.height-lineData[0]/50*lineCanvas.height);
+   lineData.forEach((v,i)=>{
+     const x=i*(lineCanvas.width/lineData.length)+20;
+     const y=lineCanvas.height-v/50*lineCanvas.height;
+     lCtx.lineTo(x,y);
+   });
+   lCtx.strokeStyle="#0d6efd"; lCtx.lineWidth=2;
+   lCtx.stroke();
+ }
+ drawLineChart();
+
+ // PIE CHART
+ const pieCanvas=document.getElementById("pieChart");
+ const pCtx=pieCanvas.getContext("2d");
+ const pieData=[5,3,2];
+ const colors=["#0d6efd","#3a86ff","#ff4d4d"];
+ const total=pieData.reduce((a,b)=>a+b,0);
+ let start=0;
+ pieData.forEach((v,i)=>{
+   const angle=v/total*2*Math.PI;
+   pCtx.beginPath();
+   pCtx.moveTo(pieCanvas.width/2,pieCanvas.height/2);
+   pCtx.arc(pieCanvas.width/2,pieCanvas.height/2,80,start,start+angle);
+   pCtx.fillStyle=colors[i]; pCtx.fill();
+   start+=angle;
+ });
+}
+
+// Animate numbers
+function animateValue(id,start,end,duration,suffix){
+ let obj=document.getElementById(id), current=start;
+ let range=end-start;
+ let increment=end>start?1:-1;
+ let step=Math.abs(Math.floor(duration/range));
+ let timer=setInterval(()=>{
+   current+=increment;
+   obj.innerText=current+suffix;
+   if(current==end) clearInterval(timer);
+ },step);
+}
+</script>
+
+</body>
+</html>
